@@ -15,6 +15,8 @@ $app = new IP\Application(
     realpath(__DIR__.'/../')
 );
 
+$app->useStoragePath(env('STORAGE_PATH', null));
+
 /*
 |--------------------------------------------------------------------------
 | Bind Important Interfaces
