@@ -1,17 +1,6 @@
-# Configuration stuff
-/application/config/development
-/application/sessions
-/ipconfig.php
-
-# Dependencies
 /node_modules
 /vendor
-
-# Other files
-/.htaccess
-.idea
-.sass-cache
-adminer.php
-/nbproject
-/.php_cs.cache
-/doc
+/.idea
+npm-debug.log
+yarn-error.log
+.env

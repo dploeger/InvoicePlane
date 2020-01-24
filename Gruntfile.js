@@ -1,194 +1,213 @@
-"use strict";
-module.exports = function(grunt) {
-  const sass = require("node-sass");
+'use strict';
+module.exports = function (grunt) {
 
   // Load grunt tasks automatically
-  require("load-grunt-tasks")(grunt);
+  require('load-grunt-tasks')(grunt);
 
   // MODULES
 
-  grunt.initConfig({
-    clean: {
-      basic: [
-        "assets/**/*.css",
-        "assets/**/*.css.map",
-        "!assets/core/css/custom.css",
-        "!assets/core/css/custom-pdf.css", // CSS
-        "assets/core/js/*.js",
-        "!assets/core/js/scripts.js",
-        "!assets/core/js/jquery-ui.js", // JS
-        "assets/core/fonts/*",
-        "!assets/core/fonts/.gitignore" // Fonts
-      ],
-      build: ["assets/default/js/dependencies.js", "assets/default/js/legacy.js"]
-    },
+  grunt.config('clean', {
+    styles: [
+      'assets/dist/*.css', 'assets/dist/*.css.map' // CSS
+    ],
+    js: [
+      'assets/dist/*.js', 'assets/dist/*.js.map' // Javascript
+    ],
+    fonts: [
+      'assets/dist/fonts/**/*.*', '!assets/dist/fonts/.gitignore' // Font Awesome + Ionicons
+    ],
+    third_party: [
+      'assets/dist/adminlte/**/*.*', '!assets/dist/adminlte/.gitignore', // Admin LTE
+      'assets/dist/bs-datepicker/**/*.*', '!assets/dist/bs-datepicker/.gitignore', // Bootstrap Datepicker
+      'assets/dist/chosen-js/**/*.*', '!assets/dist/chosen-js/.gitignore', // Chosen JS
+      'assets/dist/daterangepicker/**/*.*', '!assets/dist/daterangepicker/.gitignore', // Chosen JS
+      'assets/dist/typeahead/**/*.*', '!assets/dist/typeahead/.gitignore', // Typeahead JS
+    ]
+  });
 
-    sass: {
-      dev: {
-        options: {
-          implementation: sass,
-          outputStyle: "extended",
-          sourceMap: true
-        },
-        files: grunt.file.expandMapping(["assets/**/sass/*.scss"], "css", {
-          rename: function(dest, matched) {
-            return matched.replace(/\/sass\//, "/" + dest + "/").replace(/\.scss$/, ".css");
-          }
-        })
+  grunt.config('sass', {
+    dev: {
+      options: {
+        outputStyle: 'extended',
+        sourceMap: true
       },
-      build: {
-        options: {
-          outputStyle: "compressed"
-        },
-        files: grunt.file.expandMapping(["assets/**/sass/*.scss"], "css", {
-          rename: function(dest, matched) {
-            return matched.replace(/\/sass\//, "/" + dest + "/").replace(/\.scss$/, ".css");
-          }
-        })
+      files: {
+        'assets/dist/app.css': 'resources/assets/sass/app.scss',
+        'assets/dist/adminlte/css/skins/skin-invoiceplane.min.css': 'resources/assets/sass/skin-invoiceplane.scss'
       }
     },
-
-    postcss: {
-      dev: {
-        options: {
-          map: true,
-          processors: [require("autoprefixer")]
-        },
-        src: ["assets/**/css/*.css", "!assets/core/css/custom.css", "!assets/core/css/custom-pdf.css"]
+    build: {
+      options: {
+        outputStyle: 'compressed',
+        sourceMap: false
       },
-      build: {
-        options: {
-          map: false,
-          processors: [require("autoprefixer")]
-        },
-        src: ["assets/**/css/*.css", "!assets/core/css/custom.css", "!assets/core/css/custom-pdf.css"]
+      files: {
+        'assets/dist/app.css': 'resources/assets/sass/app.scss',
+        'assets/dist/adminlte/css/skins/skin-invoiceplane.min.css': 'resources/assets/sass/skin-invoiceplane.scss'
       }
-    },
+    }
+  });
 
-    concat: {
-      legacy: {
-        src: ["node_modules/html5shiv/dist/html5shiv.js"],
-        dest: "assets/core/js/legacy.js"
-      },
-      dependencies: {
-        src: [
-          "node_modules/jquery/dist/jquery.js",
-          "node_modules/js-cookie/src/js.cookie.js",
-          "assets/core/js/jquery-ui.js",
-          "node_modules/bootstrap-sass/assets/javascripts/bootstrap.js",
-          "node_modules/bootstrap-datepicker/js/bootstrap-datepicker.js",
-          "node_modules/select2/dist/js/select2.full.js",
-          "node_modules/dropzone/dist/dropzone.js",
-          "node_modules/clipboard/dist/clipboard.js"
-        ],
-        dest: "assets/core/js/dependencies.js"
-      },
-      zxcvbn: {
-        src: ["node_modules/zxcvbn/dist/zxcvbn.js"],
-        dest: "assets/core/js/zxcvbn.js"
-      }
-    },
-
-    uglify: {
-      build: {
-        files: {
-          "assets/core/js/legacy.min.js": ["assets/core/js/legacy.js"],
-          "assets/core/js/dependencies.min.js": ["assets/core/js/dependencies.js"],
-          "assets/core/js/scripts.min.js": ["assets/core/js/scripts.js"]
-        }
-      }
-    },
-
-    copy: {
-      datepickerlocale: {
-        expand: true,
-        flatten: true,
-        src: ["node_modules/bootstrap-datepicker/js/locales/**"],
-        dest: "assets/core/js/locales/",
-        filter: "isFile"
-      },
-      select2locale: {
-        expand: true,
-        flatten: true,
-        src: ["node_modules/select2/dist/js/i18n/**"],
-        dest: "assets/core/js/locales/select2/",
-        filter: "isFile"
-      },
-      fontawesome: {
-        expand: true,
-        flatten: true,
-        src: ["node_modules/font-awesome/fonts/*"],
-        dest: "assets/core/fonts"
-      },
-      devjs: {
-        files: [
-          {
-            cwd: "assets/core/js/",
-            src: ["*.js", "!jquery-ui.js"],
-            dest: "assets/core/js/",
-            expand: true,
-            rename: function(dest, src) {
-              return (dest + src).replace(".js", ".min.js");
-            }
-          }
+  grunt.config('postcss', {
+    dev: {
+      options: {
+        map: true,
+        processors: [
+          require('autoprefixer')({
+            browsers: 'last 3 version'
+          })
         ]
-      }
-    },
-
-    watch: {
-      sass: {
-        files: "assets/**/*.scss",
-        tasks: ["sass:dev", "postcss:dev"]
       },
-      js: {
-        files: "assets/core/js/scripts.js",
-        tasks: ["uglify"]
+      src: [
+        'assets/dist/*.css'
+      ]
+    },
+    build: {
+      options: {
+        map: false,
+        processors: [
+          require('autoprefixer')({
+            browsers: 'last 3 version'
+          })
+        ]
+      },
+      src: [
+        'assets/dist/*.css'
+      ]
+    }
+  });
+
+  grunt.config('concat', {
+    js_dependencies: {
+      src: [
+        'node_modules/jquery/dist/jquery.js',
+        'node_modules/jquery-ui-dist/jquery-ui.js',
+        'node_modules/bootstrap-sass/assets/javascripts/bootstrap.js',
+        'node_modules/admin-lte/dist/js/app.js',
+        'node_modules/autosize/dist/autosize.js',
+        'node_modules/moment/moment.js',
+        'node_modules/bootstrap-notify/bootstrap-notify.js',
+        'node_modules/jquery-slimscroll/jquery.slimscroll.js'
+      ],
+      dest: 'assets/dist/dependencies.js'
+    }
+  });
+
+  grunt.config('uglify', {
+    js_dependencies: {
+      files: {
+        'assets/dist/dependencies.js': ['assets/dist/dependencies.js']
       }
+    }
+  });
+
+  grunt.config('copy', {
+    fontawesome: {
+      expand: true,
+      flatten: true,
+      src: ['node_modules/font-awesome/fonts/*'],
+      dest: 'assets/dist/fonts/'
+    },
+    ionicons: {
+      expand: true,
+      flatten: true,
+      src: ['node_modules/ionicons/dist/fonts/*'],
+      dest: 'assets/dist/fonts/'
+    },
+    adminlte: {
+      expand: true,
+      cwd: 'node_modules/admin-lte/dist/',
+      src: ['**'],
+      dest: 'assets/dist/adminlte/'
+    },
+    chosen_js: {
+      expand: true,
+      cwd: 'node_modules/chosen-js',
+      src: ['chosen.css', 'chosen.jquery.js', '*.png'],
+      dest: 'assets/dist/chosen-js/'
+    },
+    bs_datepicker: {
+      expand: true,
+      cwd: 'node_modules/bootstrap-datepicker/dist',
+      src: ['locales/*.js', 'js/bootstrap-datepicker.min.js', 'css/bootstrap-datepicker3.min.css'],
+      dest: 'assets/dist/bs-datepicker/'
+    },
+    daterangepicker: {
+      expand: true,
+      cwd: 'node_modules/daterangepicker/',
+      src: ['daterangepicker.css', 'daterangepicker.js'],
+      dest: 'assets/dist/daterangepicker/'
+    },
+    typeahead: {
+      expand: true,
+      cwd: 'node_modules/typeahead.js/dist/',
+      src: ['typeahead.bundle.min.js'],
+      dest: 'assets/dist/typeahead/'
+    }
+  });
+
+  grunt.config('watch', {
+    sass: {
+      files: 'resources/assets/sass/**/*.scss',
+      tasks: ['sass:dev', 'postcss:dev']
     }
   });
 
   // TASKS
 
-  grunt.registerTask("default", "build");
+  grunt.registerTask('default', 'build');
 
-  grunt.registerTask("dev-build", [
-    "clean:basic",
-    "sass:dev",
-    "postcss:dev",
-    "concat:legacy",
-    "concat:dependencies",
-    "concat:zxcvbn",
-    "copy:datepickerlocale",
-    "copy:select2locale",
-    "copy:fontawesome",
-    "copy:devjs"
+  grunt.registerTask('dev-build', [
+    'clean:styles',
+    'clean:js',
+    'clean:fonts',
+    'clean:third_party',
+    'sass:dev',
+    'postcss:dev',
+    'concat:js_dependencies',
+    'copy:fontawesome',
+    'copy:ionicons',
+    'copy:adminlte',
+    'copy:chosen_js',
+    'copy:bs_datepicker',
+    'copy:daterangepicker',
+    'copy:typeahead'
   ]);
 
-  grunt.registerTask("dev", [
-    "clean:basic",
-    "sass:dev",
-    "postcss:dev",
-    "concat:legacy",
-    "concat:dependencies",
-    "concat:zxcvbn",
-    "copy:datepickerlocale",
-    "copy:select2locale",
-    "copy:fontawesome",
-    "copy:devjs",
-    "watch"
+  grunt.registerTask('dev', [
+    'clean:styles',
+    'clean:js',
+    'clean:fonts',
+    'clean:third_party',
+    'sass:dev',
+    'postcss:dev',
+    'concat:js_dependencies',
+    'concat:js_dependencies',
+    'copy:fontawesome',
+    'copy:ionicons',
+    'copy:adminlte',
+    'copy:chosen_js',
+    'copy:bs_datepicker',
+    'copy:daterangepicker',
+    'copy:typeahead',
+    'watch'
   ]);
 
-  grunt.registerTask("build", [
-    "clean:basic",
-    "sass:build",
-    "postcss:build",
-    "concat:legacy",
-    "concat:dependencies",
-    "concat:zxcvbn",
-    "uglify:build",
-    "clean:build",
-    "copy:datepickerlocale",
-    "copy:select2locale",
-    "copy:fontawesome"
+  grunt.registerTask('build', [
+    'clean:styles',
+    'clean:js',
+    'clean:fonts',
+    'clean:third_party',
+    'sass:build',
+    'postcss:build',
+    'concat:js_dependencies',
+    'uglify:js_dependencies',
+    'copy:fontawesome',
+    'copy:ionicons',
+    'copy:adminlte',
+    'copy:chosen_js',
+    'copy:bs_datepicker',
+    'copy:daterangepicker',
+    'copy:typeahead'
   ]);
 };
