@@ -22,6 +22,8 @@ class QuoteUpdateRequest extends QuoteStoreRequest
     {
         $request = $this->all();
 
+        $request['discount'] = NumberFormatter::unformat($request['discount']);
+
         if (isset($request['items'])) {
             foreach ($request['items'] as $key => $item) {
                 $request['items'][$key]['quantity'] = NumberFormatter::unformat($item['quantity']);
